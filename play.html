@@ -807,8 +807,8 @@
 
     <div class="p3-right">
         <div class="mode-toggle" id="modeToggle">
-            <button class="mt-btn active" data-mode="semantic">Pure Semantic</button>
             <button class="mt-btn" data-mode="hybrid">Hybrid Key</button>
+            <button class="mt-btn active" data-mode="semantic">Pure Semantic</button>
         </div>
 
         <div class="key-display" id="keyDisplay"></div>
@@ -860,7 +860,7 @@ const SCENARIOS = [
         answerRight: 'Account 4522 balance: $12,340.00',
         answerWrong: 'Account 4521 balance: $87,210.00 wrong account entirely.',
         p2title: '0.98 similarity. Two completely different accounts.',
-        p2explain: 'Account IDs are semantically meaningless to embedding models. "4521" and "4522" are just numbers the model sees the same pattern. With <strong class="hl-r">0.98</strong> similarity, this will hit almost any cache threshold. User A sees User B\'s financial data.',
+        p2explain: 'Account IDs are semantically meaningless to embedding models. "4521" and "4522" are just numbers, the model sees the same pattern. With <strong class="hl-r">0.98</strong> similarity, this will hit almost any cache threshold. User A sees User B\'s financial data.',
     },
     {
         id: 'password',
@@ -1027,7 +1027,7 @@ function updateP2() {
     } else {
         res.innerHTML = `
             <div class="result-block rb-miss">
-                <div class="rb-emoji">🔍</div>
+                <div class="rb-emoji"></div>
                 <div class="rb-body">
                     <h3 class="tc-purple">LLM called  correct answer generated</h3>
                     <p>${s.answerRight}<br>Cost: $0.003. The threshold saved you from a wrong answer  but only because it was strict enough. Lower it, and this becomes a dangerous hit.</p>
@@ -1073,8 +1073,8 @@ function buildP3() {
         `;
     }
 
-    mode = 'semantic';
-    document.querySelectorAll('.mt-btn').forEach(b => b.classList.toggle('active', b.dataset.mode === 'semantic'));
+    mode = 'hybrid';
+    document.querySelectorAll('.mt-btn').forEach(b => b.classList.toggle('active', b.dataset.mode === 'hybrid'));
     updateP3();
 }
 
@@ -1153,11 +1153,11 @@ function updateP3() {
     if (blocked) {
         resEl.innerHTML = `
             <div class="result-block rb-miss">
-                <div class="rb-emoji">🛡️</div>
+                <div class="rb-emoji"></div>
                 <div class="rb-body">
-                    <h3 class="tc-purple">Blocked LLM called, correct answer served</h3>
+                    <h3 class="tc-purple">LLM called, correct answer served</h3>
                     <p>"<strong>${s.entityA}</strong>" ≠ "<strong>${s.entityB}</strong>" strict gate rejected this before vectors were compared.
-                    Cost: $0.003 to avoid serving a wrong answer that would have been free.</p>
+                    <br>Cost: $0.003 to avoid serving a wrong answer that would have been free.</p>
                 </div>
             </div>`;
     } else if (hit && correct) {
@@ -1182,9 +1182,9 @@ function updateP3() {
     } else {
         resEl.innerHTML = `
             <div class="result-block rb-miss">
-                <div class="rb-emoji">🔍</div>
+                <div class="rb-emoji"></div>
                 <div class="rb-body">
-                    <h3>Cache MISS LLM called</h3>
+                    <h3>Cache MISS : LLM called</h3>
                     <p>Below threshold. Cost: $0.003.</p>
                 </div>
             </div>`;
