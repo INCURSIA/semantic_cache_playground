@@ -1,0 +1,1234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vector Collision Playground</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #0a0a0f;
+            color: #e0e0e0;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .page {
+            display: none;
+            height: 100vh;
+            padding: 32px 48px;
+        }
+
+        .page.active {
+            display: grid;
+        }
+
+        /* ============ PAGE 1 ============ */
+        #page1 {
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: auto 1fr auto;
+            gap: 0 60px;
+        }
+
+        .p1-nav { grid-column: 1 / -1; }
+        .p1-left { grid-column: 1; grid-row: 2; display: flex; flex-direction: column; justify-content: center; }
+        .p1-right { grid-column: 2; grid-row: 2; display: flex; flex-direction: column; justify-content: center; }
+        .p1-bottom { grid-column: 1 / -1; grid-row: 3; }
+
+        .p1-title {
+            font-size: 2.4rem;
+            font-weight: 800;
+            color: #fff;
+            line-height: 1.2;
+            margin-bottom: 16px;
+            letter-spacing: -0.5px;
+        }
+
+        .p1-title span {
+            color: #f87171;
+        }
+
+        .p1-desc {
+            font-size: 1.72rem;
+            color: #777;
+            line-height: 1.75;
+            margin-bottom: 20px;
+        }
+
+        .p1-concept {
+            background: #111118;
+            border: 1px solid #1a1a28;
+            border-radius: 14px;
+            padding: 20px 24px;
+        }
+
+        .p1-concept-title {
+            font-size: 0.72rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: #6c63ff;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .p1-concept p {
+            font-size: 1.4rem;
+            color: #999;
+            line-height: 1.7;
+        }
+
+        .p1-concept strong { color: #ddd; }
+        .p1-concept .hl { color: #f87171; font-weight: 600; }
+
+        .query-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .query-card {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            background: #111118;
+            border: 1.5px solid #1a1a28;
+            border-radius: 14px;
+            padding: 28px 22px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .query-card:hover {
+            border-color: #2a2a40;
+            background: #13131f;
+        }
+
+        .query-card.selected {
+            border-color: #6c63ff;
+            background: rgba(108,99,255,0.04);
+        }
+
+        .qc-radio {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            border: 2px solid #2a2a3a;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .query-card.selected .qc-radio { border-color: #6c63ff; }
+
+        .qc-dot {
+            width: 9px;
+            height: 9px;
+            border-radius: 50%;
+            background: #6c63ff;
+            transform: scale(0);
+            transition: transform 0.2s;
+        }
+
+        .query-card.selected .qc-dot { transform: scale(1); }
+
+        .qc-body { flex: 1; }
+
+        .qc-name {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: #ddd;
+            margin-bottom: 3px;
+        }
+
+        .qc-preview {
+            font-size: 0.9rem;
+            color: #9fc515;
+        }
+
+        .qc-tag {
+            font-size: 0.62rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            padding: 4px 12px;
+            border-radius: 20px;
+            flex-shrink: 0;
+        }
+
+        .tag-safe { background: rgba(74,222,128,0.1); color: #4ade80; }
+        .tag-danger { background: rgba(239,68,68,0.1); color: #f87171; }
+        .tag-warn { background: rgba(245,158,11,0.1); color: #f59e0b; }
+
+        /* ============ PAGE 2 ============ */
+        #page2 {
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: auto 1fr auto;
+            gap: 0 60px;
+        }
+
+        .p2-nav { grid-column: 1 / -1; }
+        .p2-left { grid-column: 1; grid-row: 2; display: flex; flex-direction: column; justify-content: center; }
+        .p2-right { grid-column: 2; grid-row: 2; display: flex; flex-direction: column; justify-content: center; }
+        .p2-bottom { grid-column: 1 / -1; grid-row: 3; }
+
+        .p2-title {
+            font-size: 2.3rem;
+            font-weight: 800;
+            color: #fff;
+            line-height: 1.25;
+            margin-bottom: 12px;
+            letter-spacing: -0.3px;
+        }
+
+        .p2-explain {
+            font-size: 1.4rem;
+            color: #777;
+            line-height: 1.7;
+            margin-bottom: 24px;
+        }
+
+        .p2-explain strong { color: #ccc; }
+        .p2-explain .hl-r { color: #f87171; font-weight: 600; }
+        .p2-explain .hl-g { color: #4ade80; font-weight: 600; }
+
+        .pair-card {
+            background: #111118;
+            border: 1px solid #1a1a28;
+            border-radius: 14px;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+
+        .pair-halves {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+        }
+
+        .pair-half {
+            padding: 18px 22px;
+        }
+
+        .pair-half:first-child {
+            border-right: 1px solid #1a1a28;
+        }
+
+        .pair-label {
+            font-size: 1.2rem;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: #c5c211;
+            font-weight: 600;
+            margin-bottom: 30px;
+        }
+
+        .pair-text {
+            font-size: 1.7rem;
+            color: #ccc;
+            line-height: 1.6;
+        }
+
+        .hl-r {
+            color: #f87171;
+            font-weight: 700;
+            background: rgba(239,68,68,0.08);
+            padding: 1px 5px;
+            border-radius: 3px;
+        }
+
+        .hl-g {
+            color: #4ade80;
+            font-weight: 700;
+            background: rgba(74,222,128,0.06);
+            padding: 1px 5px;
+            border-radius: 3px;
+        }
+
+        /* Vector visual area */
+        .vector-area {
+            background: #111118;
+            border: 1px solid #1a1a28;
+            border-radius: 14px;
+            padding: 24px;
+            margin-bottom: 20px;
+            position: relative;
+            height: 160px;
+        }
+
+        .va-canvas {
+            position: absolute;
+            inset: 0;
+            border-radius: 14px;
+        }
+
+        /* Similarity + slider */
+        .sim-block {
+            display: flex;
+            align-items: center;
+            gap: 24px;
+            margin-bottom: 20px;
+        }
+
+        .sim-number {
+            font-size: 3.2rem;
+            font-weight: 800;
+            line-height: 1;
+            transition: color 0.3s;
+            flex-shrink: 0;
+        }
+
+        .sim-right {
+            flex: 1;
+        }
+
+        .sim-right-label {
+            font-size: 1.78rem;
+            color: #ffffff;
+            margin-bottom: 2px;
+        }
+
+        .sim-right-sub {
+            font-size: 1.72rem;
+            color: #c5c211;
+            margin-bottom: 10px;
+        }
+
+        .slider-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        input[type="range"] {
+            -webkit-appearance: none;
+            appearance: none;
+            flex: 1;
+            height: 6px;
+            background: #1a1a28;
+            border-radius: 3px;
+            outline: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #6c63ff;
+            cursor: pointer;
+            box-shadow: 0 0 10px rgba(108,99,255,0.3);
+        }
+
+        input[type="range"]::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #6c63ff;
+            cursor: pointer;
+            border: none;
+        }
+
+        .slider-val {
+            font-size: 1rem;
+            font-weight: 700;
+            color: #6c63ff;
+            font-family: 'SF Mono', 'Fira Code', monospace;
+            min-width: 40px;
+            text-align: right;
+        }
+
+        .slider-hints {
+            display: flex;
+            justify-content: space-between;
+            font-size: 1rem;
+            color: #b6d11a;
+            margin-top: 4px;
+        }
+
+        /* Result block */
+        .result-block {
+            border-radius: 14px;
+            padding: 20px 24px;
+            display: flex;
+            align-items: flex-start;
+            gap: 16px;
+            transition: all 0.35s ease;
+        }
+
+        .rb-emoji {
+            font-size: 1.8rem;
+            flex-shrink: 0;
+            line-height: 1.1;
+        }
+
+        .rb-body h3 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 15px;
+        }
+
+        .rb-body p {
+            font-size: 1.5rem;
+            color: #888;
+            line-height: 2.6;
+        }
+
+        .rb-correct { background: rgba(74,222,128,0.05); border: 1px solid rgba(74,222,128,0.15); }
+        .rb-wrong { background: rgba(239,68,68,0.05); border: 1px solid rgba(239,68,68,0.18); }
+        .rb-miss { background: rgba(108,99,255,0.04); border: 1px solid rgba(108,99,255,0.12); }
+        .rb-miss-waste { background: rgba(245,158,11,0.04); border: 1px solid rgba(245,158,11,0.12); }
+
+        .tc-green { color: #4ade80; }
+        .tc-red { color: #f87171; }
+        .tc-yellow { color: #f59e0b; }
+        .tc-purple { color: #8b83ff; }
+
+        /* ============ PAGE 3 ============ */
+        #page3 {
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: auto 1fr auto;
+            gap: 0 60px;
+        }
+
+        .p3-nav { grid-column: 1 / -1; }
+        .p3-left { grid-column: 1; grid-row: 2; display: flex; flex-direction: column; justify-content: center; }
+        .p3-right { grid-column: 2; grid-row: 2; display: flex; flex-direction: column; justify-content: center; }
+        .p3-bottom { grid-column: 1 / -1; grid-row: 3; }
+
+        .p3-title {
+            font-size: 2.8rem;
+            font-weight: 800;
+            color: #fff;
+            line-height: 1.25;
+            margin-bottom: 12px;
+        }
+
+        .p3-explain {
+            font-size: 1.5rem;
+            color: #777;
+            line-height: 1.7;
+            margin-bottom: 24px;
+        }
+
+        .p3-explain strong { color: #ccc; }
+        .p3-explain .hl-e { color: #f59e0b; font-weight: 600; }
+        .p3-explain .hl-v { color: #4ade80; font-weight: 600; }
+
+        /* Toggle */
+        .mode-toggle {
+            display: flex;
+            background: #0d0d14;
+            border: 1px solid #1a1a28;
+            border-radius: 12px;
+            padding: 4px;
+            margin-bottom: 20px;
+        }
+
+        .mt-btn {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            background: transparent;
+            color: #555;
+            font-family: inherit;
+            font-size: 1.5rem;
+            font-weight: 600;
+            cursor: pointer;
+            border-radius: 9px;
+            transition: all 0.25s;
+        }
+
+        .mt-btn.active {
+            background: #6c63ff;
+            color: #fff;
+            box-shadow: 0 2px 14px rgba(108,99,255,0.2);
+        }
+
+        /* Key display */
+        .key-display {
+            background: #0d0d14;
+            border: 1px solid #1a1a28;
+            border-radius: 10px;
+            padding: 16px 20px;
+            font-family: 'SF Mono', 'Fira Code', monospace;
+            font-size: 1.4rem;
+            margin-bottom: 8px;
+            overflow-x: auto;
+            white-space: nowrap;
+            transition: all 0.3s;
+        }
+
+        .kd-dim { color: #333; }
+        .kd-co { color: #6c63ff; }
+        .kd-en { color: #f59e0b; }
+        .kd-vec { color: #4ade80; }
+
+        .key-explain {
+            font-size: 1.3rem;
+            color: #99dd1b;
+            margin-bottom: 20px;
+            line-height: 1.5;
+        }
+
+        /* Gate rows */
+        .gate-section {
+            margin-bottom: 20px;
+        }
+
+        .gate-section-title {
+            font-size: 0.65rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: #444;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .gate-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 16px 16px;
+            background: #111118;
+            border: 1px solid #1a1a28;
+            border-radius: 10px;
+            margin-bottom: 8px;
+            font-size: 1.3rem;
+            color: #aaa;
+            transition: all 0.3s;
+        }
+
+        .gate-row strong { color: #ddd; }
+
+        .g-icon {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+
+        .gi-pass { background: rgba(74,222,128,0.12); color: #4ade80; }
+        .gi-fail { background: rgba(239,68,68,0.12); color: #ef4444; }
+        .gi-skip { background: rgba(80,80,80,0.1); color: #555; }
+
+        .g-badge {
+            font-size: 0.6rem;
+            font-weight: 700;
+            padding: 3px 10px;
+            border-radius: 12px;
+            margin-left: auto;
+            letter-spacing: 0.5px;
+            flex-shrink: 0;
+        }
+
+        .gb-pass { background: rgba(74,222,128,0.08); color: #4ade80; }
+        .gb-fail { background: rgba(239,68,68,0.08); color: #f87171; }
+        .gb-skip { background: rgba(80,80,80,0.08); color: #555; }
+
+        /* Pair reminder */
+        .pair-reminder {
+            background: #111118;
+            border: 1px solid #1a1a28;
+            border-radius: 12px;
+            padding: 14px 18px;
+            margin-bottom: 20px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .pr-item-label {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: #333;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .pr-item-text {
+            font-size: 1.5rem;
+            color: #99dd1b;
+            line-height: 1.4;
+        }
+
+        /* ============ SHARED ============ */
+
+        /* Nav bar */
+        .nav-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+
+        .nav-dots {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .nd {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #1e1e2e;
+            transition: all 0.3s;
+        }
+
+        .nd.done { background: #6c63ff; }
+        .nd.now { background: #6c63ff; width: 28px; border-radius: 4px; }
+
+        .nav-label {
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: #444;
+    font-weight: 600;
+}
+
+.p1-nav .nav-label {
+    font-size: 1.5rem;
+    letter-spacing: 0px;
+    text-transform: none;
+    color: #ffffff;
+    font-weight: 700;
+}
+
+        /* Bottom bar */
+        .bot-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 12px;
+        }
+
+        .btn {
+            padding: 14px 32px;
+            border-radius: 12px;
+            border: none;
+            font-family: inherit;
+            font-size: 0.88rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-go {
+            background: #6c63ff;
+            color: #fff;
+            box-shadow: 0 2px 20px rgba(108,99,255,0.2);
+        }
+
+        .btn-go:hover { background: #7b73ff; box-shadow: 0 4px 28px rgba(108,99,255,0.3); }
+        .btn-go:disabled { opacity: 0.25; cursor: not-allowed; }
+
+        .btn-back {
+            background: transparent;
+            color: #555;
+            border: 1px solid #1e1e2e;
+        }
+
+        .btn-back:hover { border-color: #3a3a4a; color: #999; }
+
+        .btn-restart {
+            background: transparent;
+            border: 1px solid #1e1e2e;
+            color: #666;
+            padding: 14px 28px;
+            border-radius: 12px;
+            font-family: inherit;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-restart:hover { border-color: #6c63ff; color: #6c63ff; }
+
+        .spacer { visibility: hidden; }
+
+        /* ============ RESPONSIVE ============ */
+        @media (max-width: 900px) {
+            .page { padding: 24px 24px; }
+
+            #page1, #page2, #page3 {
+                grid-template-columns: 1fr;
+                grid-template-rows: auto auto 1fr auto;
+                gap: 0;
+            }
+
+            #page1 .p1-left { grid-column: 1; grid-row: 2; }
+            #page1 .p1-right { grid-column: 1; grid-row: 3; }
+
+            #page2 .p2-left { grid-column: 1; grid-row: 2; }
+            #page2 .p2-right { grid-column: 1; grid-row: 3; overflow-y: auto; }
+
+            #page3 .p3-left { grid-column: 1; grid-row: 2; }
+            #page3 .p3-right { grid-column: 1; grid-row: 3; overflow-y: auto; }
+
+            .p1-title { font-size: 1.6rem; }
+            .p2-title, .p3-title { font-size: 1.3rem; }
+            .sim-number { font-size: 2.4rem; }
+            .pair-halves { grid-template-columns: 1fr; }
+            .pair-half:first-child { border-right: none; border-bottom: 1px solid #1a1a28; }
+
+            .p1-concept { margin-bottom: 20px; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- ========== PAGE 1 ========== -->
+<div class="page active" id="page1">
+<div class="p1-nav"> <div class="nav-bar"> <div class="nav-dots"> <div class="nd now"></div> <div class="nd"></div> <div class="nd"></div> </div> </div> </div>
+
+    <div class="p1-left">
+        <div class="p1-title">Your cache can <span>hallucinate.</span></div>
+        <div class="p1-desc">
+            Semantic caching doesn't compare strings, it compares meaning.
+            Two queries that "mean the same thing" return the cached answer instantly.
+            But what happens when two queries sound identical yet need completely different answers?
+        </div>
+        <div class="p1-concept">
+            <div class="p1-concept-title">How semantic caching works</div>
+            <p>
+                When a query arrives, the system generates a <strong>vector embedding</strong>,  a list of numbers representing meaning.
+                Instead of checking "is this the exact same string?", it asks <strong>"is this meaning close enough?"</strong>
+                If the similarity score exceeds a threshold, the cached response is served.
+                No LLM call. No cost. No latency.<br><br>
+                The risk: <span class="hl">two queries can score 0.96+ similarity while requiring completely different answers.</span>
+                One wrong digit. One wrong name. The cache doesn't know the difference.
+            </p>
+        </div>
+    </div>
+
+    <div class="p1-right">
+        <div style="font-size:1.5rem;font-weight:700;color:#ffffff;margin-bottom:16px;">Choose a scenario</div>
+        <div class="query-list" id="queryList"></div>
+    </div>
+
+    <div class="bot-bar p1-bottom">
+        <div class="spacer"><button class="btn">_</button></div>
+        <button class="btn btn-go" id="toP2" disabled>See what happens →</button>
+    </div>
+</div>
+
+<!-- ========== PAGE 2 ========== -->
+<div class="page" id="page2">
+    <div class="nav-bar p2-nav">
+        <div class="nav-dots">
+            <div class="nd done"></div>
+            <div class="nd now"></div>
+            <div class="nd"></div>
+        </div>
+        <div class="nav-label">The problem</div>
+    </div>
+
+    <div class="p2-left">
+        <div class="p2-title" id="p2Title"></div>
+        <div class="p2-explain" id="p2Explain"></div>
+
+        <div class="pair-card">
+            <div class="pair-halves" id="pairHalves"></div>
+        </div>
+
+        <div class="sim-block">
+            <div class="sim-number" id="simNum">0.96</div>
+            <div class="sim-right">
+                <div class="sim-right-label">Cosine Similarity</div>
+                <div class="sim-right-sub">The embedding model sees these as nearly identical</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="p2-right">
+        <div style="margin-bottom: 12px;">
+            <div class="sim-right-label" style="margin-bottom: 8px; font-size: 0.78rem; color: #555;">Your cache threshold would this be a hit or miss?</div>
+            <div class="slider-row">
+                <input type="range" id="p2Slider" min="0.80" max="0.99" step="0.01" value="0.93">
+                <div class="slider-val" id="p2SliderVal">0.93</div>
+            </div>
+            <div class="slider-hints">
+                <span>← Loose (more hits, more risk)</span>
+                <span>Strict (fewer hits, safer) →</span>
+            </div>
+        </div>
+
+        <div id="p2Verdict" style="margin-bottom: 20px;"></div>
+
+        <div id="p2Result"></div>
+    </div>
+
+    <div class="bot-bar p2-bottom">
+        <button class="btn btn-back" id="backTo1">← Back</button>
+        <button class="btn btn-go" id="toP3">See the fix →</button>
+    </div>
+</div>
+
+<!-- ========== PAGE 3 ========== -->
+<div class="page" id="page3">
+    <div class="nav-bar p3-nav">
+        <div class="nav-dots">
+            <div class="nd done"></div>
+            <div class="nd done"></div>
+            <div class="nd now"></div>
+        </div>
+        <div class="nav-label">The solution</div>
+    </div>
+
+    <div class="p3-left">
+        <div class="p3-title">Check facts before checking vectors.</div>
+        <div class="p3-explain" id="p3Explain">
+            A <strong>hybrid key</strong> adds a strict layer before vector comparison.
+            Critical entities <span class="hl-e">dosages, account IDs, drug names</span> are extracted from the prompt
+            and embedded directly in the Redis key.<br><br>
+            The cache now has <strong>two gates</strong>:
+            Gate 1 compares <span class="hl-e">extracted entities exactly</span> (string match).
+            Gate 2 compares <span class="hl-v">vector embeddings</span> (similarity score).<br><br>
+            If Gate 1 fails, Gate 2 never runs. The vectors are never compared.
+            A $0.003 LLM call replaces a free but <strong>wrong</strong> cached answer.
+        </div>
+
+        <div class="pair-reminder" id="pairReminder"></div>
+    </div>
+
+    <div class="p3-right">
+        <div class="mode-toggle" id="modeToggle">
+            <button class="mt-btn active" data-mode="semantic">Pure Semantic</button>
+            <button class="mt-btn" data-mode="hybrid">Hybrid Key</button>
+        </div>
+
+        <div class="key-display" id="keyDisplay"></div>
+        <div class="key-explain" id="keyExplain"></div>
+
+        <div class="gate-section">
+            <div class="gate-section-title">Cache lookup gates</div>
+            <div id="gateRows"></div>
+        </div>
+
+        <div id="p3Result"></div>
+    </div>
+
+    <div class="bot-bar p3-bottom">
+        <button class="btn btn-back" id="backTo2">← Back</button>
+        <button class="btn-restart" id="restart">↻ Try another scenario</button>
+    </div>
+</div>
+
+<script>
+const SCENARIOS = [
+    {
+        id: 'dosage',
+        label: 'Medication Dosage',
+        tag: 'Lethal Risk', tagClass: 'tag-danger',
+        preview: '"Give 10mg…" vs "Give 100mg…"',
+        sentA: 'Give the patient <span class="hl-r">10mg</span> of Medicine X',
+        sentB: 'Give the patient <span class="hl-r">100mg</span> of Medicine X',
+        rawA: 'Give the patient 10mg of Medicine X',
+        rawB: 'Give the patient 100mg of Medicine X',
+        similarity: 0.96, safe: false,
+        entityA: '10mg', entityB: '100mg', entityLabel: 'Dosage',
+        answerRight: 'Protocol for administering 100mg of Medicine X…',
+        answerWrong: 'Protocol for 10mg of Medicine X, a 10× dosage error.',
+        p2title: 'One character apart. The vectors nearly overlap.',
+        p2explain: 'The embedding model encodes <strong>meaning</strong>, not characters. Both sentences have identical structure, identical intent, identical vocabulary except for one number. The cosine similarity is <strong class="hl-r">0.96</strong>. At most production thresholds, this is a <strong>cache hit</strong>. The cached answer for 10mg gets served for a 100mg question.',
+    },
+    {
+        id: 'account',
+        label: 'Account Balance',
+        tag: 'Wrong Data', tagClass: 'tag-warn',
+        preview: '"Balance for 4521" vs "Balance for 4522"',
+        sentA: 'Show balance for account <span class="hl-r">4521</span>',
+        sentB: 'Show balance for account <span class="hl-r">4522</span>',
+        rawA: 'Show balance for account 4521',
+        rawB: 'Show balance for account 4522',
+        similarity: 0.98, safe: false,
+        entityA: 'acct:4521', entityB: 'acct:4522', entityLabel: 'Account ID',
+        answerRight: 'Account 4522 balance: $12,340.00',
+        answerWrong: 'Account 4521 balance: $87,210.00 wrong account entirely.',
+        p2title: '0.98 similarity. Two completely different accounts.',
+        p2explain: 'Account IDs are semantically meaningless to embedding models. "4521" and "4522" are just numbers the model sees the same pattern. With <strong class="hl-r">0.98</strong> similarity, this will hit almost any cache threshold. User A sees User B\'s financial data.',
+    },
+    {
+        id: 'password',
+        label: 'Password Reset',
+        tag: 'Safe', tagClass: 'tag-safe',
+        preview: '"Reset my password" vs "I need to reset…"',
+        sentA: 'How do I <span class="hl-g">reset my password</span>?',
+        sentB: 'I need to <span class="hl-g">reset my password</span>',
+        rawA: 'How do I reset my password?',
+        rawB: 'I need to reset my password',
+        similarity: 0.97, safe: true,
+        entityA: null, entityB: null, entityLabel: null,
+        answerRight: 'Go to Settings → Security → Reset Password.',
+        answerWrong: null,
+        p2title: 'Same question, different phrasing. The ideal cache hit.',
+        p2explain: 'No critical entities here. Both queries have the <strong class="hl-g">same intent</strong> and require the <strong class="hl-g">same answer</strong>. The similarity score of 0.97 correctly reflects that. This is exactly what semantic caching was built for saving an LLM call when the answer is already known.',
+    },
+    {
+        id: 'gravity',
+        label: 'Explain Gravity',
+        tag: 'Safe', tagClass: 'tag-safe',
+        preview: '"Explain gravity" vs "Explain gravity simply"',
+        sentA: 'Explain <span class="hl-g">gravity</span>',
+        sentB: 'Explain <span class="hl-g">gravity</span> simply',
+        rawA: 'Explain gravity',
+        rawB: 'Explain gravity simply',
+        similarity: 0.93, safe: true,
+        entityA: null, entityB: null, entityLabel: null,
+        answerRight: 'Gravity is the force that pulls objects toward each other…',
+        answerWrong: null,
+        p2title: 'Close enough? Depends on your threshold.',
+        p2explain: 'At <strong class="hl-g">0.93</strong>, this pair sits right on the boundary. A strict threshold (0.95+) would miss this  calling the LLM unnecessarily. A loose threshold (0.90) would catch it. For safe queries like this, the slider trade-off is straightforward. The problem is: <strong>the same slider also controls the dangerous pairs.</strong>',
+    },
+    {
+        id: 'cancel',
+        label: 'Cancel Subscription',
+        tag: 'Safe', tagClass: 'tag-safe',
+        preview: '"Cancel subscription" vs "How to cancel…"',
+        sentA: '<span class="hl-g">Cancel subscription</span>',
+        sentB: 'How to <span class="hl-g">cancel subscription</span>',
+        rawA: 'Cancel subscription',
+        rawB: 'How to cancel subscription',
+        similarity: 0.95, safe: true,
+        entityA: null, entityB: null, entityLabel: null,
+        answerRight: 'Go to Account → Billing → Cancel Plan.',
+        answerWrong: null,
+        p2title: 'Intent match. A clean cache win.',
+        p2explain: 'Different structure, same meaning. The embedding model correctly captures that "Cancel subscription" and "How to cancel subscription" are the same request. At <strong class="hl-g">0.95</strong>, this hits with a standard threshold. No entities to worry about  pure semantic caching works perfectly here.',
+    },
+];
+
+let selected = null;
+let threshold = 0.93;
+let mode = 'semantic';
+
+function init() {
+    buildP1();
+    setupSlider();
+    setupToggle();
+    setupNav();
+}
+
+// ---- PAGE 1 ----
+function buildP1() {
+    const list = document.getElementById('queryList');
+    list.innerHTML = SCENARIOS.map(s => `
+        <div class="query-card" data-id="${s.id}">
+            <div class="qc-radio"><div class="qc-dot"></div></div>
+            <div class="qc-body">
+                <div class="qc-name">${s.label}</div>
+                <div class="qc-preview">${s.preview}</div>
+            </div>
+            <div class="qc-tag ${s.tagClass}">${s.tag}</div>
+        </div>
+    `).join('');
+
+    list.querySelectorAll('.query-card').forEach(card => {
+        card.addEventListener('click', () => {
+            selected = SCENARIOS.find(x => x.id === card.dataset.id);
+            list.querySelectorAll('.query-card').forEach(c => c.classList.remove('selected'));
+            card.classList.add('selected');
+            document.getElementById('toP2').disabled = false;
+        });
+    });
+}
+
+// ---- PAGE 2 ----
+function buildP2() {
+    const s = selected;
+    document.getElementById('p2Title').textContent = s.p2title;
+    document.getElementById('p2Explain').innerHTML = s.p2explain;
+
+    document.getElementById('pairHalves').innerHTML = `
+        <div class="pair-half">
+            <div class="pair-label">Cached query</div>
+            <div class="pair-text">${s.sentA}</div>
+        </div>
+        <div class="pair-half">
+            <div class="pair-label">New query</div>
+            <div class="pair-text">${s.sentB}</div>
+        </div>
+    `;
+
+    document.getElementById('simNum').textContent = s.similarity.toFixed(2);
+    updateP2();
+}
+
+function updateP2() {
+    const s = selected;
+    const hit = s.similarity >= threshold;
+    const correct = hit ? s.safe : true;
+
+    const simEl = document.getElementById('simNum');
+    simEl.style.color = hit ? (s.safe ? '#4ade80' : '#f87171') : '#f59e0b';
+
+    // Verdict
+    const verdictEl = document.getElementById('p2Verdict');
+    if (hit) {
+        verdictEl.innerHTML = `
+            <div style="display:flex;align-items:center;gap:10px;padding:12px 16px;background:${s.safe ? 'rgba(74,222,128,0.06)' : 'rgba(239,68,68,0.06)'};border:1px solid ${s.safe ? 'rgba(74,222,128,0.15)' : 'rgba(239,68,68,0.15)'};border-radius:10px;">
+                <span style="font-size:0.85rem;font-weight:700;color:${s.safe ? '#4ade80' : '#f87171'};">
+                    ${s.similarity.toFixed(2)} ≥ ${threshold.toFixed(2)} → Cache HIT
+                </span>
+            </div>`;
+    } else {
+        verdictEl.innerHTML = `
+            <div style="display:flex;align-items:center;gap:10px;padding:12px 16px;background:rgba(245,158,11,0.05);border:1px solid rgba(245,158,11,0.12);border-radius:10px;">
+                <span style="font-size:0.85rem;font-weight:700;color:#f59e0b;">
+                    ${s.similarity.toFixed(2)} < ${threshold.toFixed(2)} → Cache MISS
+                </span>
+            </div>`;
+    }
+
+    // Result
+    const res = document.getElementById('p2Result');
+    if (hit && correct) {
+        res.innerHTML = `
+            <div class="result-block rb-correct">
+                <div class="rb-emoji"></div>
+                <div class="rb-body">
+                    <h3 class="tc-green">Correct answer served from cache</h3>
+                    <p>${s.answerRight}<br>LLM cost: <strong>$0.00</strong>  the cache saved money and served the right answer.</p>
+                </div>
+            </div>`;
+    } else if (hit && !correct) {
+        res.innerHTML = `
+            <div class="result-block rb-wrong">
+                <div class="rb-emoji">⚠️</div>
+                <div class="rb-body">
+                    <h3 class="tc-red">Wrong answer served from cache</h3>
+                    <p class="tc-red" style="font-weight:600;margin-bottom:6px;">${s.answerWrong}</p>
+                    <p>The system returned instantly. Zero cost. Zero latency. <strong>Completely wrong.</strong> This is a caching hallucination  the infrastructure invented an incorrect answer the model never generated.</p>
+                </div>
+            </div>`;
+    } else if (!hit && s.safe) {
+        res.innerHTML = `
+            <div class="result-block rb-miss-waste">
+                <div class="rb-emoji">😐</div>
+                <div class="rb-body">
+                    <h3 class="tc-yellow">Unnecessary LLM call</h3>
+                    <p>A correct cached answer exists, but ${s.similarity.toFixed(2)} fell below your threshold of ${threshold.toFixed(2)}. The LLM was called for $0.003 when it didn't need to be. Try lowering the threshold  but watch what happens to the dangerous scenarios.</p>
+                </div>
+            </div>`;
+    } else {
+        res.innerHTML = `
+            <div class="result-block rb-miss">
+                <div class="rb-emoji">🔍</div>
+                <div class="rb-body">
+                    <h3 class="tc-purple">LLM called  correct answer generated</h3>
+                    <p>${s.answerRight}<br>Cost: $0.003. The threshold saved you from a wrong answer  but only because it was strict enough. Lower it, and this becomes a dangerous hit.</p>
+                </div>
+            </div>`;
+    }
+}
+
+// ---- PAGE 3 ----
+function buildP3() {
+    const s = selected;
+
+    document.getElementById('pairReminder').innerHTML = `
+        <div>
+            <div class="pr-item-label">Cached</div>
+            <div class="pr-item-text">${s.rawA}</div>
+        </div>
+        <div>
+            <div class="pr-item-label">New</div>
+            <div class="pr-item-text">${s.rawB}</div>
+        </div>
+    `;
+
+    const hasEntity = s.entityA !== null;
+    const explainEl = document.getElementById('p3Explain');
+    if (hasEntity) {
+        explainEl.innerHTML = `
+            A <strong>hybrid key</strong> adds a strict layer before vector comparison.
+            Critical entities  <span class="hl-e">dosages, account IDs, drug names</span>  are extracted from the prompt
+            and embedded directly in the Redis key.<br><br>
+            The cache now has <strong>two gates</strong>:
+            Gate 1 compares <span class="hl-e">extracted entities exactly</span> (string match).
+            Gate 2 compares <span class="hl-v">vector embeddings</span> (similarity score).<br><br>
+            If Gate 1 fails, Gate 2 never runs. The vectors are never compared.
+            A $0.003 LLM call replaces a free but <strong>wrong</strong> cached answer.
+        `;
+    } else {
+        explainEl.innerHTML = `
+            This query pair has <strong>no critical entities</strong>  no numbers, IDs, or names that change the answer.
+            The hybrid key still works: it checks for entities, finds none, and <span class="hl-v">passes through to vector comparison</span> as normal.<br><br>
+            The hybrid approach doesn't add unnecessary friction to safe queries.
+            It only activates its strict gate when there's something worth being strict about.
+        `;
+    }
+
+    mode = 'semantic';
+    document.querySelectorAll('.mt-btn').forEach(b => b.classList.toggle('active', b.dataset.mode === 'semantic'));
+    updateP3();
+}
+
+function updateP3() {
+    const s = selected;
+    const isHybrid = mode === 'hybrid';
+    const semHit = s.similarity >= threshold;
+    const hasEntity = s.entityA !== null;
+    const strictOk = !hasEntity || s.entityA === s.entityB;
+    const blocked = isHybrid && !strictOk;
+    const hit = semHit && !blocked;
+    const correct = hit ? s.safe : true;
+
+    // Key display
+    const keyEl = document.getElementById('keyDisplay');
+    const keyExpEl = document.getElementById('keyExplain');
+    if (!isHybrid) {
+        keyEl.innerHTML = `<span class="kd-dim">{</span><span class="kd-co">company:user</span><span class="kd-dim">}:</span><span class="kd-vec">[vector_hash]</span>`;
+        keyExpEl.textContent = 'Only the vector hash determines cache lookup. No entity filtering.';
+    } else {
+        const ent = s.entityB || '—';
+        keyEl.innerHTML = `<span class="kd-dim">{</span><span class="kd-co">company:user</span><span class="kd-dim">}:</span><span class="kd-en">${ent}</span><span class="kd-dim">:</span><span class="kd-vec">[vector_hash]</span>`;
+        keyExpEl.textContent = hasEntity
+            ? `The ${s.entityLabel.toLowerCase()} "${ent}" is part of the key. Different entity = different key = no collision.`
+            : 'No entity extracted for this query. Key passes through to vector comparison.';
+    }
+
+    // Gates
+    const gateEl = document.getElementById('gateRows');
+    if (!isHybrid) {
+        gateEl.innerHTML = `
+            <div class="gate-row">
+                <div class="g-icon gi-skip">—</div>
+                <span>Strict entity filter: <strong>off</strong></span>
+                <span class="g-badge gb-skip">DISABLED</span>
+            </div>
+            <div class="gate-row">
+                <div class="g-icon ${semHit ? 'gi-pass' : 'gi-fail'}">${semHit ? '✓' : '✗'}</div>
+                <span>Vector: <strong>${s.similarity.toFixed(2)}</strong> ${semHit ? '≥' : '<'} <strong>${threshold.toFixed(2)}</strong></span>
+                <span class="g-badge ${semHit ? 'gb-pass' : 'gb-fail'}">${semHit ? 'HIT' : 'MISS'}</span>
+            </div>
+        `;
+    } else {
+        gateEl.innerHTML = `
+            <div class="gate-row">
+                <div class="g-icon ${hasEntity ? (strictOk ? 'gi-pass' : 'gi-fail') : 'gi-pass'}">
+                    ${hasEntity ? (strictOk ? '✓' : '✗') : '✓'}
+                </div>
+                <span>
+                    ${s.entityLabel || 'Entity'}:
+                    ${hasEntity
+                        ? `<strong>${s.entityA}</strong> vs <strong>${s.entityB}</strong>`
+                        : '<strong>No entity to check</strong>'
+                    }
+                </span>
+                <span class="g-badge ${!hasEntity || strictOk ? 'gb-pass' : 'gb-fail'}">
+                    ${!hasEntity ? 'PASS' : (strictOk ? 'MATCH' : 'BLOCKED')}
+                </span>
+            </div>
+            <div class="gate-row" style="${blocked ? 'opacity:0.4;' : ''}">
+                <div class="g-icon ${blocked ? 'gi-skip' : (semHit ? 'gi-pass' : 'gi-fail')}">
+                    ${blocked ? '—' : (semHit ? '✓' : '✗')}
+                </div>
+                <span>Vector: <strong>${s.similarity.toFixed(2)}</strong>
+                    ${blocked ? '' : `${semHit ? '≥' : '<'} <strong>${threshold.toFixed(2)}</strong>`}
+                </span>
+                <span class="g-badge ${blocked ? 'gb-skip' : (semHit ? 'gb-pass' : 'gb-fail')}">
+                    ${blocked ? 'SKIPPED' : (semHit ? 'HIT' : 'MISS')}
+                </span>
+            </div>
+        `;
+    }
+
+    // Result
+    const resEl = document.getElementById('p3Result');
+    if (blocked) {
+        resEl.innerHTML = `
+            <div class="result-block rb-miss">
+                <div class="rb-emoji">🛡️</div>
+                <div class="rb-body">
+                    <h3 class="tc-purple">Blocked LLM called, correct answer served</h3>
+                    <p>"<strong>${s.entityA}</strong>" ≠ "<strong>${s.entityB}</strong>" strict gate rejected this before vectors were compared.
+                    Cost: $0.003 to avoid serving a wrong answer that would have been free.</p>
+                </div>
+            </div>`;
+    } else if (hit && correct) {
+        resEl.innerHTML = `
+            <div class="result-block rb-correct">
+                <div class="rb-emoji"></div>
+                <div class="rb-body">
+                    <h3 class="tc-green">Cache HIT Correct answer served</h3>
+                    <p>${hasEntity ? 'Entities matched exactly. ' : 'No critical entities to filter. '}Vector similarity confirmed. $0.00 cost.</p>
+                </div>
+            </div>`;
+    } else if (hit && !correct) {
+        resEl.innerHTML = `
+            <div class="result-block rb-wrong">
+                <div class="rb-emoji">⚠️</div>
+                <div class="rb-body">
+                    <h3 class="tc-red">Cache HIT Wrong answer served</h3>
+                    <p class="tc-red">${s.answerWrong}</p>
+                    <p>Switch to <strong>Hybrid Key</strong> to see the fix.</p>
+                </div>
+            </div>`;
+    } else {
+        resEl.innerHTML = `
+            <div class="result-block rb-miss">
+                <div class="rb-emoji">🔍</div>
+                <div class="rb-body">
+                    <h3>Cache MISS LLM called</h3>
+                    <p>Below threshold. Cost: $0.003.</p>
+                </div>
+            </div>`;
+    }
+}
+
+// ---- SLIDER ----
+function setupSlider() {
+    document.getElementById('p2Slider').addEventListener('input', e => {
+        threshold = parseFloat(e.target.value);
+        document.getElementById('p2SliderVal').textContent = threshold.toFixed(2);
+        updateP2();
+    });
+}
+
+// ---- TOGGLE ----
+function setupToggle() {
+    document.querySelectorAll('.mt-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            mode = btn.dataset.mode;
+            document.querySelectorAll('.mt-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            updateP3();
+        });
+    });
+}
+
+// ---- NAV ----
+function setupNav() {
+    document.getElementById('toP2').addEventListener('click', () => goTo(2));
+    document.getElementById('toP3').addEventListener('click', () => goTo(3));
+    document.getElementById('backTo1').addEventListener('click', () => goTo(1));
+    document.getElementById('backTo2').addEventListener('click', () => goTo(2));
+    document.getElementById('restart').addEventListener('click', () => goTo(1));
+}
+
+function goTo(n) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.getElementById('page' + n).classList.add('active');
+    if (n === 2) buildP2();
+    if (n === 3) buildP3();
+}
+
+init();
+</script>
+</body>
+</html>
