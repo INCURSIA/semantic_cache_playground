@@ -662,31 +662,41 @@
 
         /* ============ RESPONSIVE ============ */
         @media (max-width: 900px) {
-            .page { padding: 24px 24px; }
+    body {
+        overflow: auto;
+    }
 
-            #page1, #page2, #page3 {
-                grid-template-columns: 1fr;
-                grid-template-rows: auto auto 1fr auto;
-                gap: 0;
-            }
+    .page { padding: 24px 24px; }
 
-            #page1 .p1-left { grid-column: 1; grid-row: 2; }
-            #page1 .p1-right { grid-column: 1; grid-row: 3; }
+    .page.active {
+        height: auto;
+        min-height: 100vh;
+        overflow: visible;
+    }
 
-            #page2 .p2-left { grid-column: 1; grid-row: 2; }
-            #page2 .p2-right { grid-column: 1; grid-row: 3; overflow-y: auto; }
+    #page1, #page2, #page3 {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto auto 1fr auto;
+        gap: 0;
+    }
 
-            #page3 .p3-left { grid-column: 1; grid-row: 2; }
-            #page3 .p3-right { grid-column: 1; grid-row: 3; overflow-y: auto; }
+    #page1 .p1-left { grid-column: 1; grid-row: 2; }
+    #page1 .p1-right { grid-column: 1; grid-row: 3; }
 
-            .p1-title { font-size: 1.6rem; }
-            .p2-title, .p3-title { font-size: 1.3rem; }
-            .sim-number { font-size: 2.4rem; }
-            .pair-halves { grid-template-columns: 1fr; }
-            .pair-half:first-child { border-right: none; border-bottom: 1px solid #1a1a28; }
+    #page2 .p2-left { grid-column: 1; grid-row: 2; }
+    #page2 .p2-right { grid-column: 1; grid-row: 3; overflow-y: visible; }
 
-            .p1-concept { margin-bottom: 20px; }
-        }
+    #page3 .p3-left { grid-column: 1; grid-row: 2; }
+    #page3 .p3-right { grid-column: 1; grid-row: 3; overflow-y: visible; }
+
+    .p1-title { font-size: 1.6rem; }
+    .p2-title, .p3-title { font-size: 1.3rem; }
+    .sim-number { font-size: 2.4rem; }
+    .pair-halves { grid-template-columns: 1fr; }
+    .pair-half:first-child { border-right: none; border-bottom: 1px solid #1a1a28; }
+
+    .p1-concept { margin-bottom: 20px; }
+}
     </style>
 </head>
 <body>
